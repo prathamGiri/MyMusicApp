@@ -3,7 +3,18 @@ import * as MediaLibrary from 'expo-media-library';
 import MusicInfo from 'expo-music-info-2';
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { FlatList, Image, Text, TouchableOpacity, View, Dimensions, StyleSheet } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { 
+  FlatList, 
+  Image, 
+  Text, 
+  TouchableOpacity, 
+  View, 
+  Dimensions, 
+  StyleSheet,
+  TextInput,
+  Modal
+ } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { 
   getAllSongsFromDB, 
@@ -12,13 +23,14 @@ import {
   saveSong, 
   createPlaylist,
   getAllPlaylists,
-  getSongsInPlaylist
+  getSongsInPlaylist,
+  deletePlaylist
 } from '../../utils/database';
 import { saveArtwork } from '../../utils/saveImg';
 import { usePlayer } from "../PlayerContext";
 
-  const { width } = Dimensions.get("window");
-  const boxSize = width / 2 - 30;
+const { width } = Dimensions.get("window");
+const boxSize = width / 2 - 30;
 
 export default function SongsScreen() {
 
@@ -26,11 +38,36 @@ export default function SongsScreen() {
 
   const { player, status, song, setSong, setQueue, queue, setCurrentIndex } = usePlayer();
   const [activeTab, setActiveTab] = useState("Songs");
+  const [modalVisible, setModalVisible] = useState(false);
+  const [newPlaylistName, setNewPlaylistName] = useState("");
+  const [playlists, setPlaylists] = useState([]);
 
   useEffect(() => {
     const setupDB = async () => {
       await initDB();
-      console.log("Database initialized ✅");
+    };
+    setupDB();
+  }, []);
+
+  useEffect(() => {
+    const setupDB = async () => {
+      try {
+        const hasDBInit = await AsyncStorage.getItem("db_initialized");
+
+        if (!hasDBInit) {
+          // Run init only the first time
+          await createPlaylist("Favorites")
+          await createPlaylist("Top30")
+          console.log("Database initialized ✅ (first time)");
+
+          // Set flag so it won’t run again
+          await AsyncStorage.setItem("db_initialized", "true");
+        } else {
+          console.log("Database already initialized, skipping ✅");
+        }
+      } catch (error) {
+        console.error("Error setting up DB:", error);
+      }
     };
 
     setupDB();
@@ -91,7 +128,10 @@ export default function SongsScreen() {
 
       // 3. Fetch everything from DB and update UI
       const allFromDB = await getAllSongsFromDB();
+      const playlists = await getAllPlaylists();
       setQueue(allFromDB);
+      setPlaylists(playlists);
+
     };
 
     loadSongs();
@@ -117,11 +157,23 @@ export default function SongsScreen() {
 
   const handleShuffle = () => {
 
+  };
+
+  const handleDeletePlaylist = async (id) => {
+    await deletePlaylist(id);
+    const updatedPlaylists = await getAllPlaylists();
+    setPlaylists(updatedPlaylists);
   }
 
-  const handleAddPlaylist = async () => {
-    await createPlaylist("Chill Vibes");
-  }
+  
+  const handleCreatePlaylist = async () => {
+    if (!newPlaylistName.trim()) return; // ignore empty names
+      await createPlaylist(newPlaylistName.trim());
+      setModalVisible(false);
+      setNewPlaylistName("");
+      const updatedPlaylists = await getAllPlaylists();
+      setPlaylists(updatedPlaylists);
+  };
 
   async function requestPermission() {
     const { status } = await MediaLibrary.requestPermissionsAsync();
@@ -220,44 +272,46 @@ export default function SongsScreen() {
     </View>
   );
 
-    // 🔹 Playlists Data
-  const playlists = [
-    {
-      id: "favorites",
-      title: "Favorites",
-      icon: "heart",
-      color: "#f5425d",
-    },
-    {
-      id: "top30",
-      title: "Top 30 Songs",
-      icon: "star",
-      color: "#f5c542",
-    },
-  ];
 
     // 🔹 Render Playlist Item
   const renderPlaylist = ({ item }) => (
     <TouchableOpacity
+      onPress={() => {
+        handleDeletePlaylist(item.id)
+      }}
+
       style={{
         width: boxSize,
         height: boxSize,
-        borderRadius: 12,
+        borderRadius: 16,
         justifyContent: "center",
         alignItems: "center",
         marginBottom: 15,
-        elevation: 3, // for Android shadow
+        backgroundColor: "#eec326", // main color
         shadowColor: "#000",
-        shadowOpacity: 0.1,
-        shadowRadius: 5,
-        backgroundColor: item.color,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 6,
+        elevation: 6, // for Android shadow
+        padding: 10,
       }}
     >
-      <Ionicons name={item.icon} size={36} color="white" />
+      <Ionicons name={item.icon || "musical-notes"} size={36} color="white" />
       <Text
-        style={styles.text}
+        style={{
+          fontSize: 14,
+          fontWeight: "600",
+          textAlign: "center",
+          color: "#fff", // white text
+          marginTop: 8,
+          textShadowColor: 'rgba(0, 0, 0, 0.5)', // subtle text shadow
+          textShadowOffset: { width: 1, height: 1 },
+          textShadowRadius: 2,
+        }}
+        numberOfLines={1}
+        ellipsizeMode="tail"
       >
-        {item.title}
+        {item.name}
       </Text>
     </TouchableOpacity>
   );
@@ -326,14 +380,13 @@ export default function SongsScreen() {
 
 {/* Shuffle Button */}
       <TouchableOpacity
-      onPress={()=>{
-        if (activeTab === "Songs") {
-          handleShuffle()
-        } else {
-          handleAddPlaylist()
-        }
-      }
-      }
+        onPress={() => {
+          if (activeTab === "Songs") {
+            handleShuffle();
+          } else {
+            setModalVisible(true); // open dialog
+          }
+        }}
         style={{
           position: "absolute",
           bottom: 80,
@@ -353,6 +406,38 @@ export default function SongsScreen() {
           <MaterialIcons name="add" size={28} color="black" />
         )}
       </TouchableOpacity>
+
+      {/* Playlist Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalBackground}>
+          <View style={styles.modalContainer}>
+            <Text style={{ fontSize: 18, marginBottom: 10 }}>Enter Playlist Name</Text>
+            <TextInput
+              placeholder="Playlist Name"
+              value={newPlaylistName}
+              onChangeText={setNewPlaylistName}
+              style={styles.input}
+            />
+            <TouchableOpacity
+              onPress={handleCreatePlaylist}
+              style={styles.createButton}
+            >
+              <Text style={{ color: "white", fontWeight: "bold" }}>Create</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setModalVisible(false)}
+              style={[styles.createButton, { backgroundColor: "#888", marginTop: 10 }]}
+            >
+              <Text style={{ color: "white" }}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       {/* Mini Player */}
       <View
@@ -443,5 +528,33 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     textAlign: "center",
+  },
+  modalBackground: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  modalContainer: {
+    width: "80%",
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    padding: 20,
+    alignItems: "center",
+  },
+  input: {
+    width: "100%",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 6,
+    padding: 10,
+    marginBottom: 15,
+  },
+  createButton: {
+    width: "100%",
+    backgroundColor: "#f5c542",
+    padding: 12,
+    borderRadius: 6,
+    alignItems: "center",
   },
 });

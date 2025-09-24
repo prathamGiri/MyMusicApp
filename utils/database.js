@@ -19,9 +19,9 @@ export const initDB = async () => {
       artwork TEXT
     );
 
-     CREATE TABLE IF NOT EXISTS playlists (
+    CREATE TABLE IF NOT EXISTS playlists (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
+      name TEXT NOT NULL UNIQUE,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
@@ -32,6 +32,7 @@ export const initDB = async () => {
       FOREIGN KEY (playlist_id) REFERENCES playlists(id) ON DELETE CASCADE,
       FOREIGN KEY (song_id) REFERENCES songs(id) ON DELETE CASCADE
     );
+    
   `);
 };
 
@@ -55,4 +56,46 @@ export const getAllSongsFromDB = async () => {
   const db = getDB();
   const result = await db.getAllAsync("SELECT * FROM songs ORDER BY id DESC");
   return result;
+};
+
+// Create a new playlist
+export const createPlaylist = async (name) => {
+  await db.runAsync(`INSERT INTO playlists (name) VALUES (?)`, [name]);
+};
+
+// Get all playlists
+export const getAllPlaylists = async () => {
+  const rows = await db.getAllAsync(`SELECT * FROM playlists ORDER BY created_at DESC`);
+  return rows;
+};
+
+// Add song to playlist
+export const addSongToPlaylist = async (playlistId, songId) => {
+  await db.runAsync(
+    `INSERT INTO playlist_songs (playlist_id, song_id) VALUES (?, ?)`,
+    [playlistId, songId]
+  );
+};
+
+// Get all songs in a playlist
+export const getSongsInPlaylist = async (playlistId) => {
+  return await db.getAllAsync(
+    `SELECT s.* FROM songs s
+     JOIN playlist_songs ps ON s.id = ps.song_id
+     WHERE ps.playlist_id = ?`,
+    [playlistId]
+  );
+};
+
+// Remove a song from playlist
+export const removeSongFromPlaylist = async (playlistId, songId) => {
+  await db.runAsync(
+    `DELETE FROM playlist_songs WHERE playlist_id = ? AND song_id = ?`,
+    [playlistId, songId]
+  );
+};
+
+// Delete playlist
+export const deletePlaylist = async (playlistId) => {
+  await db.runAsync(`DELETE FROM playlists WHERE id = ?`, [playlistId]);
 };
