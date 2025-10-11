@@ -4,6 +4,7 @@ import MusicInfo from 'expo-music-info-2';
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Menu } from "react-native-paper";
 import { 
   FlatList, 
   Image, 
@@ -58,12 +59,12 @@ export default function SongsScreen() {
           // Run init only the first time
           await createPlaylist("Favorites")
           await createPlaylist("Top30")
-          console.log("Database initialized ✅ (first time)");
+          console.log("Favorites, Top30, created for the first time");
 
           // Set flag so it won’t run again
           await AsyncStorage.setItem("db_initialized", "true");
         } else {
-          console.log("Database already initialized, skipping ✅");
+          console.log("Default Playlists already created, skipping ✅");
         }
       } catch (error) {
         console.error("Error setting up DB:", error);
@@ -165,7 +166,6 @@ export default function SongsScreen() {
     setPlaylists(updatedPlaylists);
   }
 
-  
   const handleCreatePlaylist = async () => {
     if (!newPlaylistName.trim()) return; // ignore empty names
       await createPlaylist(newPlaylistName.trim());
@@ -217,7 +217,7 @@ export default function SongsScreen() {
     >
       <TouchableOpacity
         onPress={() => handleSongPress(item)} 
-        style={{ flexDirection: "row", alignItems: "center"}}
+        style={{ flexDirection: "row", alignItems: "center", width:"90%"}}
       >
         {/* Song Image here */}
         {item.artwork ? (
@@ -259,27 +259,27 @@ export default function SongsScreen() {
           >
             {item.artist}
           </Text>
-          <Text style={{ color: "#aaa", fontSize: 13, marginLeft: 5 }}>
+          <Text style={{ color: "#aaa", fontSize: 13, marginLeft: 5}}>
             • {formatTime(item.duration)}
           </Text>
         </View>
       </View>
 
       </TouchableOpacity>
-      <TouchableOpacity>
+      <TouchableOpacity
+        style={{ marginLeft: 5}}
+      >
         <MaterialIcons name="more-vert" size={24} color="white" />
       </TouchableOpacity>
     </View>
   );
 
-
     // 🔹 Render Playlist Item
   const renderPlaylist = ({ item }) => (
     <TouchableOpacity
-      onPress={() => {
-        handleDeletePlaylist(item.id)
-      }}
-
+      // onPress={() => {
+      //   handleDeletePlaylist(item.id)
+      // }}
       style={{
         width: boxSize,
         height: boxSize,
@@ -449,7 +449,7 @@ export default function SongsScreen() {
           backgroundColor: "#1a1a2e",
           borderTopWidth: 0.5,
           borderColor: "#444",
-          marginBottom: -16
+          // marginBottom: -16
         }}
       >
         <TouchableOpacity

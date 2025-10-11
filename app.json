@@ -1,22 +1,25 @@
 {
   "expo": {
-    "name": "MyMusicApp",
-    "slug": "MyMusicApp",
+    "name": "Vibes",
+    "slug": "vibes",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/Music-Note-Background-PNG-Image.png",
     "scheme": "mymusicapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "UIBackgroundModes": ["audio"]
+      }
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "foregroundImage": "./assets/images/Music-Note-Background-PNG-Image.png",
+        "backgroundImage": "./assets/images/Music-Note-Background-PNG-Image.png",
+        "monochromeImage": "./assets/images/Music-Note-Background-PNG-Image.png"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,

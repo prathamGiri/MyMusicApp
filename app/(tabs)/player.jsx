@@ -35,6 +35,7 @@ export default function PlayerScreen() {
     }
   }, [currentTime, isSeeking]);
 
+
   // Play / Pause
   const handlePlayPause = () => {
     if (!player) return;

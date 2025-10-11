@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
+import { useAudioPlayer, useAudioPlayerStatus, setAudioModeAsync } from "expo-audio";
+// import { Audio } from "expo-av";
 
 const PlayerContext = createContext(null);
 
@@ -14,6 +15,18 @@ export function PlayerProvider({ children }) {
   const status = useAudioPlayerStatus(player);
 
   useEffect(() => {
+    async function setupAudio() {
+      await await setAudioModeAsync({
+        playsInSilentMode: true,
+        shouldPlayInBackground: true,
+        interruptionModeAndroid: 'duckOthers',
+        interruptionMode: 'mixWithOthers'
+      }).catch(err => console.error('Failed to set audio mode:', err));
+    }
+    setupAudio();
+  }, []);
+
+  useEffect(() => {
     if (currentIndex >= 0 && currentIndex < queue.length){
       setSong(queue[currentIndex])
     }
@@ -25,6 +38,19 @@ export function PlayerProvider({ children }) {
       player.play();
     }
   }, [player, song]);
+
+  useEffect(() => {
+    if (!status) return;
+
+    if (status.currentTime >= status.duration && status.duration > 0) {
+      // auto next
+      if (currentIndex < queue.length - 1) {
+        setCurrentIndex(currentIndex + 1);
+      } else {
+        setCurrentIndex(0); // loop to start
+      }
+    }
+  }, [status.currentTime, status.duration]);
 
   return (
     <PlayerContext.Provider value={{ 
