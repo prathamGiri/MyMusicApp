@@ -1,13 +1,14 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { useAudioPlayer, useAudioPlayerStatus, setAudioModeAsync } from "expo-audio";
+import { useAudioPlayer, useAudioPlayerStatus, setAudioModeAsync} from "expo-audio";
 // import { Audio } from "expo-av";
-
 const PlayerContext = createContext(null);
 
 export function PlayerProvider({ children }) {
-  const [song, setSong] = useState({});
-  const [queue, setQueue] = useState([]);
-  const [currentIndex, setCurrentIndex] = useState({});
+  const [song, setSong] = useState({}); // current song playing
+  const [queue, setQueue] = useState([]); // Queue for next songs
+  const [songsDisplayed, setSongsDisplayed] = useState([]) // songs displayed in songs list
+  const [currentIndex, setCurrentIndex] = useState(0); // index of the current song in the queue
+  const [shuffle, setShuffle] = useState(false);
 
   const player = useAudioPlayer(song.uri || undefined, {
     updateInterval : 500
@@ -30,7 +31,8 @@ export function PlayerProvider({ children }) {
     if (currentIndex >= 0 && currentIndex < queue.length){
       setSong(queue[currentIndex])
     }
-  }, [currentIndex, queue])
+  }, [currentIndex])
+
 
   useEffect(() => {
     if (player && song.uri) {     
@@ -61,7 +63,11 @@ export function PlayerProvider({ children }) {
       queue, 
       setQueue, 
       currentIndex, 
-      setCurrentIndex 
+      setCurrentIndex,
+      songsDisplayed,
+      setSongsDisplayed,
+      shuffle, 
+      setShuffle
     }}>
       {children}
     </PlayerContext.Provider>

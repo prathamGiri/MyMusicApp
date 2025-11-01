@@ -3,15 +3,25 @@ import { FlatList, Image, Text, TouchableOpacity, View } from "react-native";
 import { usePlayer } from "../../app/PlayerContext";
 
 export default function SongList({router}) {
-      const { setSong, queue, setCurrentIndex } = usePlayer();
+      const { setQueue, setSong, queue, setCurrentIndex, songsDisplayed, setShuffle } = usePlayer();
 
     const handleSongPress = (selectedSong) => {
-        const index = queue.findIndex((song) => song.id === selectedSong.id);
+
+        const sameQueue = queue.length === songsDisplayed.length && queue.every((q, i) => q.id === songsDisplayed[i].id);
+
+        if (!sameQueue) {
+            setQueue(songsDisplayed);
+            setShuffle(false);
+        }
+
+        const index = songsDisplayed.findIndex(song => song.id === selectedSong.id);
+
         if (index !== -1) {
             setCurrentIndex(index);
+            setSong(songsDisplayed[index]);
         }
-        setSong(selectedSong);        // set and play the song
-        router.push("/(tabs)/player"); // navigate to player screen
+
+        router.push("/(tabs)/player");
     };
 
     const formatTime = (seconds) => {
@@ -93,7 +103,7 @@ export default function SongList({router}) {
             {/* --- Song List --- */}
             <FlatList
                 key={"songs"}
-                data={queue}
+                data={songsDisplayed}
                 renderItem={renderItem}
                 keyExtractor={(item) => item.id}
                 contentContainerStyle={{ padding: 10 }}

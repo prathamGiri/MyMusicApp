@@ -32,8 +32,8 @@ import { usePlayer } from "../PlayerContext";
 export default function SongsScreen() {
 
   const router = useRouter();
-
-  const { setQueue } = usePlayer();
+  const {setSongsDisplayed} = usePlayer()
+  
   const [activeTab, setActiveTab] = useState("Songs");
   const [modalVisible, setModalVisible] = useState(false);
   const [playlists, setPlaylists] = useState([]);
@@ -127,10 +127,10 @@ export default function SongsScreen() {
       // 3. Fetch everything from DB and update UI
       if (sortOption === "Title") {
         const allFromDB = await getAllSongsFromDBByTitle();
-        setQueue(allFromDB);
+        setSongsDisplayed(allFromDB);
       }else if (sortOption === "Modified Time") {
         const allFromDB = await getAllSongsFromDBbyTime();
-        setQueue(allFromDB);
+        setSongsDisplayed(allFromDB);
       }
       const playlists = await getAllPlaylists();
       setPlaylists(playlists);
@@ -201,6 +201,7 @@ export default function SongsScreen() {
       <ShuffleButton 
         activeTab={activeTab}
         setModalVisible={setModalVisible}
+        router={router}
       />
 
       <AddPlaylist 

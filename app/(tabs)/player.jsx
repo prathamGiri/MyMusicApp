@@ -12,10 +12,22 @@ import { router } from "expo-router";
 
 export default function PlayerScreen() {
 
-  const { player, status, song, queue, currentIndex, setCurrentIndex } = usePlayer();
+  const { 
+    player, 
+    status, 
+    song, 
+    queue, 
+    currentIndex, 
+    setCurrentIndex, 
+    setQueue, 
+    songsDisplayed, 
+    shuffle, 
+    setShuffle} = usePlayer();
 
   const [sliderValue, setSliderValue] = useState(0);
   const [isSeeking, setIsSeeking] = useState(false);
+  const [repeat, setRepeat] = useState(false);
+  
 
   useEffect(() => {
     if (player) {
@@ -57,6 +69,37 @@ export default function PlayerScreen() {
       console.error("Seek error:", error);
     }
   };
+
+  const handleRepeat = () => {
+    setRepeat(!repeat)
+  }
+
+  const handleShuffle = () => {
+    const newShuffle = !shuffle;      // calculate the next state
+    setShuffle(newShuffle);           // update state
+
+    if (newShuffle) {
+      if (!queue || queue.length === 0) return;
+
+      const shuffled = [...queue];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+
+      setQueue([song, ...shuffled.filter(s => s.uri !== song.uri)]);
+    } else {
+      
+      if (!songsDisplayed || songsDisplayed.length === 0) return;
+
+      const reordered = [
+        song,
+        ...songsDisplayed.filter(s => s.uri !== song.uri),
+      ];
+
+      setQueue(reordered);
+    }
+};
 
   const handleNext = () => {
     if (currentIndex < queue.length - 1) {
@@ -223,7 +266,16 @@ export default function PlayerScreen() {
           marginRight: 10,
         }}
       >
-        <MaterialIcons name="repeat" size={22} color="white" />
+        <TouchableOpacity
+         onPress={handleRepeat}
+        >
+          {repeat? 
+          <MaterialIcons name="repeat" size={22} color="white" /> 
+          : 
+          <MaterialIcons name="repeat" size={22} color="grey" /> }
+          
+        </TouchableOpacity>
+        
         <TouchableOpacity
          onPress={handlePrev}
         >
@@ -248,13 +300,23 @@ export default function PlayerScreen() {
             <MaterialIcons name="play-arrow" size={40} color="black" />
           )}
         </TouchableOpacity>
+
         <TouchableOpacity
           onPress={handleNext}
         >
           <MaterialIcons name="skip-next" size={36} color="white" />
         </TouchableOpacity>
-        
-        <Entypo name="shuffle" size={20} color="white" />
+
+        <TouchableOpacity
+         onPress={handleShuffle}
+        >
+          {shuffle? 
+          <MaterialIcons name="shuffle" size={22} color="white" /> 
+          : 
+          <MaterialIcons name="shuffle" size={22} color="grey" /> }
+          
+        </TouchableOpacity>
+
       </View>
     </SafeAreaView>
   );
