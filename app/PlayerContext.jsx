@@ -9,6 +9,7 @@ export function PlayerProvider({ children }) {
   const [songsDisplayed, setSongsDisplayed] = useState([]) // songs displayed in songs list
   const [currentIndex, setCurrentIndex] = useState(0); // index of the current song in the queue
   const [shuffle, setShuffle] = useState(false);
+  const [repeat, setRepeat] = useState(false);
 
   const player = useAudioPlayer(song.uri || undefined, {
     updateInterval : 500
@@ -46,11 +47,15 @@ export function PlayerProvider({ children }) {
 
     if (status.currentTime >= status.duration && status.duration > 0) {
       // auto next
-      if (currentIndex < queue.length - 1) {
-        setCurrentIndex(currentIndex + 1);
-      } else {
-        setCurrentIndex(0); // loop to start
-      }
+      if (!repeat){
+        if (currentIndex < queue.length - 1) {
+          setCurrentIndex(currentIndex + 1);
+        } else {
+          setCurrentIndex(0); // loop to start
+        }
+      }else{
+        player.seekTo(0);
+      }    
     }
   }, [status.currentTime, status.duration]);
 
@@ -67,7 +72,9 @@ export function PlayerProvider({ children }) {
       songsDisplayed,
       setSongsDisplayed,
       shuffle, 
-      setShuffle
+      setShuffle,
+      repeat, 
+      setRepeat
     }}>
       {children}
     </PlayerContext.Provider>

@@ -22,11 +22,13 @@ export default function PlayerScreen() {
     setQueue, 
     songsDisplayed, 
     shuffle, 
-    setShuffle} = usePlayer();
+    setShuffle,
+    repeat, 
+    setRepeat} = usePlayer();
 
   const [sliderValue, setSliderValue] = useState(0);
   const [isSeeking, setIsSeeking] = useState(false);
-  const [repeat, setRepeat] = useState(false);
+  
   
 
   useEffect(() => {
