@@ -52,9 +52,15 @@ export const getAllUris = async () => {
   return rows.map(r => r.uri); // return array of existing uris
 };
 
-export const getAllSongsFromDB = async () => {
+export const getAllSongsFromDBbyTime = async () => {
   const db = getDB();
-  const result = await db.getAllAsync("SELECT * FROM songs ORDER BY id DESC");
+  const result = await db.getAllAsync("SELECT * FROM songs ORDER BY modification_time DESC");
+  return result;
+};
+
+export const getAllSongsFromDBByTitle = async () => {
+  const db = getDB();
+  const result = await db.getAllAsync("SELECT * FROM songs ORDER BY title ASC");
   return result;
 };
 
