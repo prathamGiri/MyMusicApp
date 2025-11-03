@@ -1,6 +1,6 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useAudioPlayer, useAudioPlayerStatus, setAudioModeAsync} from "expo-audio";
-// import { Audio } from "expo-av";
 const PlayerContext = createContext(null);
 
 export function PlayerProvider({ children }) {
@@ -10,15 +10,18 @@ export function PlayerProvider({ children }) {
   const [currentIndex, setCurrentIndex] = useState(0); // index of the current song in the queue
   const [shuffle, setShuffle] = useState(false);
   const [repeat, setRepeat] = useState(false);
+  
+  //state to manage first time song and queue setting from cache
+  const [firstTime, setFirstTime] = useState(true); 
 
   const player = useAudioPlayer(song.uri || undefined, {
     updateInterval : 500
   });
   const status = useAudioPlayerStatus(player);
-
+ 
   useEffect(() => {
     async function setupAudio() {
-      await await setAudioModeAsync({
+      await setAudioModeAsync({
         playsInSilentMode: true,
         shouldPlayInBackground: true,
         interruptionModeAndroid: 'duckOthers',
@@ -36,12 +39,42 @@ export function PlayerProvider({ children }) {
 
 
   useEffect(() => {
-    if (player && song.uri) {     
-      player.replace(song.uri);
-      player.play();
-    }
+    if (!player || !song?.uri) return;
+
+    // Define async function inside useEffect
+    const updateSongSession = async () => {
+      try {
+        player.replace(song.uri);
+        if (firstTime) {
+          setFirstTime(false)
+        }else{
+          player.play();
+        }
+        await AsyncStorage.setItem("past_session_song", JSON.stringify(song));
+        console.log("Song cached successfully");
+      } catch (error) {
+        console.error("Error caching song:", error);
+      }
+    };
+
+    updateSongSession();
   }, [player, song]);
 
+  useEffect(() => {
+    if (!queue || queue.length === 0) return;
+
+    const updateQueueSession = async () => {
+      try {
+        await AsyncStorage.setItem("past_session_queue", JSON.stringify(queue));
+        console.log("Queue cached successfully");
+      } catch (error) {
+        console.error("Error caching queue:", error);
+      }
+    };
+
+    updateQueueSession();
+  }, [queue]);
+  
   useEffect(() => {
     if (!status) return;
 

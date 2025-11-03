@@ -1,6 +1,7 @@
-import { useState }  from "react"
-import { View, Text, TouchableOpacity, StyleSheet} from "react-native"
 import { MaterialIcons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useState } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function SortBar({sortOption, setSortOption}) {
     const [dropdownVisible, setDropdownVisible] = useState(false);
@@ -9,7 +10,7 @@ export default function SortBar({sortOption, setSortOption}) {
     const handleSort = (option) => {
         setSortOption(option);
         setDropdownVisible(false);
-    
+        AsyncStorage.setItem("past_session_sort_option", option);
     };
 
     return(

@@ -11,8 +11,8 @@ export default function ShuffleButton({activeTab, setModalVisible, router}) {
         // Shuffle using Fisher-Yates algorithm
         const shuffled = [...queue];
         for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
         }
 
         // Update queue and start playing the first song

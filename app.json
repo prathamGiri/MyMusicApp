@@ -4,7 +4,7 @@
     "slug": "vibes",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/Music-Note-Background-PNG-Image.png",
+    "icon": "./assets/images/main_icon.png",
     "scheme": "mymusicapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -17,9 +17,9 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/Music-Note-Background-PNG-Image.png",
-        "backgroundImage": "./assets/images/Music-Note-Background-PNG-Image.png",
-        "monochromeImage": "./assets/images/Music-Note-Background-PNG-Image.png"
+        "foregroundImage": "./assets/images/main_icon.png",
+        // "backgroundImage": "./assets/images/main_icon.png",
+        // "monochromeImage": "./assets/images/main_icon.png"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
@@ -41,14 +41,14 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/main_icon.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/main_icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",

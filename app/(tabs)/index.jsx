@@ -32,13 +32,12 @@ import { usePlayer } from "../PlayerContext";
 export default function SongsScreen() {
 
   const router = useRouter();
-  const {setSongsDisplayed} = usePlayer()
+  const {setSongsDisplayed, setSong, setQueue} = usePlayer()
   
   const [activeTab, setActiveTab] = useState("Songs");
   const [modalVisible, setModalVisible] = useState(false);
   const [playlists, setPlaylists] = useState([]);
-  const [sortOption, setSortOption] = useState("Title");
-  
+  const [sortOption, setSortOption] = useState("");
 
   useEffect(() => {
     const setupDB = async () => {
@@ -68,7 +67,42 @@ export default function SongsScreen() {
       }
     };
 
+    const saveSession = async () => {
+      try {
+        const hasSongSaved = await AsyncStorage.getItem("past_session_song");
+        const hasQueueSaved = await AsyncStorage.getItem("past_session_queue");
+        const hasSortOptionSaved = await AsyncStorage.getItem("past_session_sort_option");
+
+        if (!hasSongSaved) {
+          console.log("no song in past session");
+        } else {
+          const songData = JSON.parse(hasSongSaved);
+          setSong(songData)
+          console.log("Song loaded");
+        }
+
+        if (!hasQueueSaved) {
+          console.log("no queue in past session");
+        } else {
+          const queueData = JSON.parse(hasQueueSaved);
+          setQueue(queueData);
+          console.log("Queue loaded");
+        }
+
+        if (!hasSortOptionSaved) {
+          setSortOption("Title")
+          console.log("no sort option in past session");
+        } else {
+          setSortOption(hasSortOptionSaved);
+          console.log("Sort Option loaded");
+        }
+      } catch (error) {
+        console.error("Error loading past song", error);
+      }
+    };
+
     setupDB();
+    saveSession();
   }, []);
 
   useEffect(() => {
@@ -124,6 +158,15 @@ export default function SongsScreen() {
         await saveSong(song);
       }
 
+      const playlists = await getAllPlaylists();
+      setPlaylists(playlists);
+    };
+
+    loadSongs();
+  }, []);
+
+  useEffect(() => {
+    const displaySongs = async () => {
       // 3. Fetch everything from DB and update UI
       if (sortOption === "Title") {
         const allFromDB = await getAllSongsFromDBByTitle();
@@ -132,12 +175,9 @@ export default function SongsScreen() {
         const allFromDB = await getAllSongsFromDBbyTime();
         setSongsDisplayed(allFromDB);
       }
-      const playlists = await getAllPlaylists();
-      setPlaylists(playlists);
-    };
-
-    loadSongs();
-  }, [sortOption]);
+    }
+    displaySongs()
+  }, [sortOption])
 
 
   const handleDeletePlaylist = async (id) => {
